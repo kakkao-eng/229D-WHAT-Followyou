@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerWalk : MonoBehaviour
 {
@@ -21,19 +22,49 @@ public class PlayerWalk : MonoBehaviour
     {
         float moveInput = Input.GetAxisRaw("Horizontal");
 
-        rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
-
-        if (moveInput != 0)
+        if (SceneManager.GetActiveScene().name == "Scene4")
         {
-            isWalking = true;
-            animator.SetBool("isWalking", isWalking);
-            FlipSprite(moveInput);
+            float moveX = Input.GetAxisRaw("Horizontal");
+            float moveY = Input.GetAxisRaw("Vertical"); // เพิ่มการรับค่าแกน Y
+
+            // ควบคุมการเคลื่อนที่แกน X ด้วย Rigidbody
+            rb.velocity = new Vector2(moveX * speed, rb.velocity.y);
+
+            // กำหนดการเคลื่อนที่โดยการเปลี่ยนตำแหน่งในแกน Y โดยไม่ใช้ Rigidbody
+            float newYPosition = transform.position.y + (moveY * speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newYPosition, transform.position.z);
+
+            // ตรวจสอบการเคลื่อนที่แกน Y เพื่อเปิด/ปิด Animator
+            if (moveX != 0 || moveY != 0) // เมื่อมีการเคลื่อนที่ทั้งแกน X และ Y
+            {
+                isWalking = true;
+                animator.SetBool("isWalking", isWalking);
+                FlipSprite(moveX);
+            }
+            else
+            {
+                isWalking = false;
+                animator.SetBool("isWalking", isWalking);
+            }
         }
+        
         else
         {
-            isWalking = false;
-            animator.SetBool("isWalking", isWalking);
+            rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
+
+            if (moveInput != 0)
+            {
+                isWalking = true;
+                animator.SetBool("isWalking", isWalking);
+                FlipSprite(moveInput);
+            }
+            else
+            {
+                isWalking = false;
+                animator.SetBool("isWalking", isWalking);
+            }
         }
+
     }
 
     void FlipSprite(float moveInput)
