@@ -5,78 +5,80 @@ using UnityEngine.SceneManagement;
 
 public class PlayerWalk : MonoBehaviour
 {
-    private Rigidbody2D rb;
+    private Rigidbody2D rb2D; // Reference to Rigidbody2D component
     private Animator animator;
     public float speed;
     private bool isWalking;
 
-    // Start is called before the first frame update
+    // ประกาศตัวแปรเพิ่มสำหรับขนาดของตัวละคร
+    public float minYScale;
+    public float maxYScale;
+    public float minMaxScaleXYZ;
+    public float scaleChangeSpeed; // เพิ่มความเร็วในการเปลี่ยนขนาด
+
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        rb2D = GetComponent<Rigidbody2D>(); // Get the Rigidbody2D component
+        if (rb2D != null)
+        {
+            rb2D.gravityScale = 0f; // Disable gravity for the character
+        }
+
         animator = GetComponent<Animator>();
+
+        minYScale = GameManager.instance.minscaleY;
+        maxYScale = GameManager.instance.maxscaleY;
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        float moveInput = Input.GetAxisRaw("Horizontal");
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveY = Input.GetAxisRaw("Vertical");
 
-        if (SceneManager.GetActiveScene().name == "Scene4")
+        Vector3 movement = new Vector3(moveX, moveY, 0f).normalized * speed * Time.deltaTime;
+        transform.Translate(movement);
+
+        // ปรับขนาดตัวละครตามแกน Y, X, Z ด้วยความเร็วที่ลดลง
+        if (moveY > 0)
         {
-            float moveX = Input.GetAxisRaw("Horizontal");
-            float moveY = Input.GetAxisRaw("Vertical"); // เพิ่มการรับค่าแกน Y
-
-            // ควบคุมการเคลื่อนที่แกน X ด้วย Rigidbody
-            rb.velocity = new Vector2(moveX * speed, rb.velocity.y);
-
-            // กำหนดการเคลื่อนที่โดยการเปลี่ยนตำแหน่งในแกน Y โดยไม่ใช้ Rigidbody
-            float newYPosition = transform.position.y + (moveY * speed * Time.deltaTime);
-            transform.position = new Vector3(transform.position.x, newYPosition, transform.position.z);
-
-            // ตรวจสอบการเคลื่อนที่แกน Y เพื่อเปิด/ปิด Animator
-            if (moveX != 0 || moveY != 0) // เมื่อมีการเคลื่อนที่ทั้งแกน X และ Y
-            {
-                isWalking = true;
-                animator.SetBool("isWalking", isWalking);
-                FlipSprite(moveX);
-            }
-            else
-            {
-                isWalking = false;
-                animator.SetBool("isWalking", isWalking);
-            }
+            float newScale = Mathf.Lerp(transform.localScale.y, minYScale, Time.deltaTime * scaleChangeSpeed);
+            transform.localScale = new Vector3(newScale, newScale, newScale);
         }
-        
+        else if (moveY < 0)
+        {
+            float newScale = Mathf.Lerp(transform.localScale.y, maxYScale, Time.deltaTime * scaleChangeSpeed);
+            transform.localScale = new Vector3(newScale, newScale, newScale);
+        }
+
+        if (moveX != 0 || moveY != 0)
+        {
+            isWalking = true;
+            animator.SetBool("isWalking", isWalking);
+            FlipSprite(moveX);
+        }
         else
         {
-            rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
-
-            if (moveInput != 0)
-            {
-                isWalking = true;
-                animator.SetBool("isWalking", isWalking);
-                FlipSprite(moveInput);
-            }
-            else
-            {
-                isWalking = false;
-                animator.SetBool("isWalking", isWalking);
-            }
+            isWalking = false;
+            animator.SetBool("isWalking", isWalking);
         }
-
     }
+
+
 
     void FlipSprite(float moveInput)
     {
-        if (moveInput > 0)
+        Debug.Log(moveInput);
+        if (moveInput > 0.01f)
         {
             transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
-        else if (moveInput < 0)
+        else if (moveInput < -0.01f)
         {
             transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
     }
+
+
+
 
 }

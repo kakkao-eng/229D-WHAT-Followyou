@@ -10,7 +10,7 @@ public class ChangeSceneOnCollision : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             // สลับไปยังซีนที่ต้องการ (เปลี่ยน "ชื่อซีน" เป็นชื่อซีนที่ต้องการ)
-            SceneManager.LoadScene("Scene");
+            SceneManager.LoadScene(GameManager.instance.NextScene);
 
             // เมื่อโหลดซีนเสร็จ กำหนดตำแหน่งและขนาดตัวละครใหม่
             SetCharacterPositionAndScale();
